@@ -46,11 +46,20 @@ def buscar_artistas():
 
     try:
         artistas = get_top_artists(API_KEY, session_key, username)
-        sorteados = random.sample(artistas, min(1, len(artistas)))  # Por enquanto, 10
-        print(f"🎧 Total de artistas: {len(artistas)}")
-        resultado_var.set("\n".join(sorteados))
+        total = len(artistas)
+
+        if total == 0:
+            resultado_var.set("⚠️ Nenhum artista encontrado.")
+            return
+
+        sorteado_index = random.randint(0, total - 1)
+        artista = artistas[sorteado_index]
+
+        mensagem = f"🎧 Que tal ouvir: {artista}\n(🎲 número sorteado: {sorteado_index + 1} de {total})"
+        resultado_var.set(mensagem)
     except Exception as e:
         messagebox.showerror("Erro", str(e))
+
 
 # GUI
 root = tk.Tk()
