@@ -1,0 +1,39 @@
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Arquivos do ambiente virtual
+venv/
+env/
+ENV/
+.venv/
+.env/  # <- sua sessão fica aqui, excluímos por segurança
+
+# Configurações do sistema/macOS/Linux
+.DS_Store
+Thumbs.db
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.bak
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Arquivos de build
+build/
+dist/
+*.egg-info/
+
+# Arquivos tkinter criados em tempo de execução (caso salve imagens ou settings)
+*.db
+*.sqlite3
+
+# Outros arquivos sensíveis
+config.py  # <- opcional: use config.example.py no lugar e adicione no .gitignore
