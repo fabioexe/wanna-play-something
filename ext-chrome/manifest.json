@@ -2,8 +2,12 @@
   "manifest_version": 3,
   "name": "Last.fm Random Artist Picker",
   "version": "1.0",
-  "description": "Sorteia um artista aleatório da sua conta do Last.fm.",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "description": "Sorteie um artista aleatório da sua conta do Last.fm.",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -12,5 +16,6 @@
       "128": "icon.png"
     }
   },
+  "permissions": ["storage"],
   "host_permissions": ["https://ws.audioscrobbler.com/*"]
 }

@@ -92,7 +92,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const username = localStorage.getItem("username");
       if (!username) throw new Error("Usuário não autenticado");
 
-      // 1. Obter total de artistas
       const totalRes = await fetch(
         `${API_URL}?method=library.getArtists&user=${username}&api_key=${API_KEY}&format=json&limit=1`
       );
@@ -101,14 +100,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!totalArtists) throw new Error("Total de artistas não encontrado");
 
-      // 2. Sortear posição aleatória entre 1 e total
       const randomPos = Math.floor(Math.random() * totalArtists) + 1;
-
-      // 3. Calcular página e índice na página
       const page = Math.ceil(randomPos / 50);
       const indexNaPagina = (randomPos - 1) % 50;
 
-      // 4. Buscar a página correspondente
       const pageRes = await fetch(
         `${API_URL}?method=library.getArtists&user=${username}&api_key=${API_KEY}&format=json&limit=50&page=${page}`
       );
@@ -120,20 +115,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       const artistaSorteado = artistas[indexNaPagina];
-
       if (!artistaSorteado) {
         throw new Error("Artista não encontrado na posição sorteada.");
       }
 
-      const texto = `🎧 Que tal ouvir: ${artistaSorteado.name} (🎲 nº ${randomPos}, ${artistaSorteado.playcount} scrobbles feitos por você)`;
-
-      resultadoDiv.innerText = texto;
-      atualizarHistorico({
+      const sorteado = {
         nome: artistaSorteado.name,
         posicao: randomPos,
         scrobbles: artistaSorteado.playcount || 0,
-      });
-      exibirHistorico();
+      };
+
+      resultadoDiv.innerText = `🎧 Que tal ouvir: ${sorteado.nome} (🎲 nº ${sorteado.posicao}, ${sorteado.scrobbles} scrobbles feitos por você)`;
+
+      atualizarHistorico(sorteado);
+      exibirHistorico(); // tudo junto, artista atual + últimos 3
     } catch (err) {
       resultadoDiv.innerText = "Erro: " + err.message;
     }
@@ -165,12 +160,14 @@ function verificarSessao() {
 }
 
 function atualizarHistorico(novoItem) {
-  let historico = JSON.parse(localStorage.getItem("historico_sorteios") || "[]");
-  historico.unshift(novoItem);
-  if (historico.length > 3) historico = historico.slice(0, 3);
+  let historico = JSON.parse(
+    localStorage.getItem("historico_sorteios") || "[]"
+  );
+
+  historico.unshift(novoItem); // Coloca o atual no topo
+  if (historico.length > 4) historico = historico.slice(0, 4); // 1 atual + 3 anteriores
   localStorage.setItem("historico_sorteios", JSON.stringify(historico));
 }
-
 
 function exibirHistorico() {
   const historicoDiv = document.getElementById("historico");
@@ -179,14 +176,17 @@ function exibirHistorico() {
   );
 
   if (historico.length === 0) {
-    historicoDiv.innerHTML = "<p>Nenhum sorteio realizado ainda.</p>";
+    historicoDiv.innerHTML = "<p>Nenhum sorteio ainda.</p>";
     return;
   }
 
-  historicoDiv.innerHTML =
-    "<h3>Últimos sorteios:</h3><ul>" +
-    historico.map(item =>
-      `<li>🎶 ${item.nome} (nº ${item.posicao} - ${item.scrobbles} scrobbles)</li>`
-    ).join("") +
-    "</ul>";
+  let html = "<h3>Últimos sorteios:</h3><ul>";
+  historico.forEach((item, index) => {
+    const destaque = index === 0 ? "<strong>" : "";
+    const fimDestaque = index === 0 ? "</strong>" : "";
+    html += `<li>🎶 ${destaque}${item.nome} (nº ${item.posicao} - ${item.scrobbles} scrobbles)${fimDestaque}</li>`;
+  });
+  html += "</ul>";
+
+  historicoDiv.innerHTML = html;
 }
