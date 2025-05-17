@@ -6,10 +6,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const authBtn = document.getElementById("auth-btn");
   const continuarBtn = document.getElementById("continuar-btn");
   const sortearBtn = document.getElementById("sortear");
-  const authSection = document.getElementById("auth-section");
-  const mainSection = document.getElementById("main-section");
+  const logoutBtn = document.getElementById("logout-btn");
+  const resultadoDiv = document.getElementById("resultado");
+  const historicoDiv = document.getElementById("historico");
 
   verificarSessao();
+  exibirHistorico();
 
   authBtn.addEventListener("click", async () => {
     try {
@@ -32,7 +34,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         "Após autorizar na aba que será aberta, volte aqui e clique em 'Já autorizei, continuar'"
       );
 
-      // Agora sim, abrir depois do alert para garantir que ele aparece
       window.open(
         `https://www.last.fm/api/auth/?api_key=${API_KEY}&token=${token}`,
         "_blank"
@@ -79,6 +80,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    verificarSessao();
+    resultadoDiv.innerText = "";
+    historicoDiv.innerHTML = "";
+  });
+
   sortearBtn.addEventListener("click", async () => {
     try {
       const username = localStorage.getItem("username");
@@ -117,11 +125,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("Artista não encontrado na posição sorteada.");
       }
 
-      document.getElementById(
-        "resultado"
-      ).innerText = `🎧 Que tal ouvir: ${artistaSorteado.name} (🎲 nº ${randomPos} de ${totalArtists})`;
+      const texto = `🎧 Que tal ouvir: ${artistaSorteado.name} (🎲 nº ${randomPos}, ${artistaSorteado.playcount} scrobbles feitos por você)`;
+
+      resultadoDiv.innerText = texto;
+      atualizarHistorico({
+        nome: artistaSorteado.name,
+        posicao: randomPos,
+        scrobbles: artistaSorteado.playcount || 0,
+      });
+      exibirHistorico();
     } catch (err) {
-      document.getElementById("resultado").innerText = "Erro: " + err.message;
+      resultadoDiv.innerText = "Erro: " + err.message;
     }
   });
 });
@@ -148,4 +162,31 @@ function verificarSessao() {
     authSection.style.display = "block";
     mainSection.style.display = "none";
   }
+}
+
+function atualizarHistorico(novoItem) {
+  let historico = JSON.parse(localStorage.getItem("historico_sorteios") || "[]");
+  historico.unshift(novoItem);
+  if (historico.length > 3) historico = historico.slice(0, 3);
+  localStorage.setItem("historico_sorteios", JSON.stringify(historico));
+}
+
+
+function exibirHistorico() {
+  const historicoDiv = document.getElementById("historico");
+  const historico = JSON.parse(
+    localStorage.getItem("historico_sorteios") || "[]"
+  );
+
+  if (historico.length === 0) {
+    historicoDiv.innerHTML = "<p>Nenhum sorteio realizado ainda.</p>";
+    return;
+  }
+
+  historicoDiv.innerHTML =
+    "<h3>Últimos sorteios:</h3><ul>" +
+    historico.map(item =>
+      `<li>🎶 ${item.nome} (nº ${item.posicao} - ${item.scrobbles} scrobbles)</li>`
+    ).join("") +
+    "</ul>";
 }
